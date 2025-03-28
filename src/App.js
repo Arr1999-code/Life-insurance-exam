@@ -1817,7 +1817,9 @@ const originalQuestions = [
     question: "Under the Affordable Care Act, insurer may refuse to accept an internal appeal on a denied claim if",
     options: ["the claim is under $500.", "the insured is unable to pay an appeal fee.", "the appeal is filed more than 180 days after the claim denial", "the insured has submitted three appeals within the calendar year."],
     answer: "the appeal is filed more than 180 days after the claim denial"
-  },
+  }
+];
+[
   {
     "question": "All of the following are typical health insuring corporation (HIC) preventive care services provided by a primary care physician EXCEPT",
     "options": ["Diagnostic imaging", "Well-baby checkups", "Physical examinations", "Immunizations for children"],
@@ -2062,6 +2064,20 @@ function App() {
   const [answers, setAnswers] = useState([]);
   const [showPasswordScreen, setShowPasswordScreen] = useState(true);
   const [inputPassword, setInputPassword] = useState('');
+  const [timeLeft, setTimeLeft] = useState(90 * 60); // 1 hour 30 minutes in seconds
+
+  useEffect(() => {
+    if (!showPasswordScreen && timeLeft > 0 && step < questions.length) {
+      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [timeLeft, showPasswordScreen, step, questions.length]);
+
+  const formatTime = (seconds) => {
+    const min = Math.floor(seconds / 60);
+    const sec = seconds % 60;
+    return `${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+  };
 
   const handlePasswordSubmit = () => {
     if (inputPassword === PASSWORD) {
@@ -2084,27 +2100,45 @@ function App() {
   const score = answers.filter((a, i) => a === questions[i].answer).length;
   const percentage = ((score / questions.length) * 100).toFixed(2);
 
+  if (timeLeft === 0) {
+    return (
+      <div className="flex items-center justify-center h-screen text-3xl text-center">
+        <div>
+          <h2 className="text-4xl font-bold text-red-600">Time's up!</h2>
+          <p className="mt-4">You scored {score} out of {questions.length}.</p>
+          <p className="mt-2">Percentage: {percentage}%</p>
+        </div>
+      </div>
+    );
+  }
+
   if (showPasswordScreen) {
     return (
-      <div className="p-4 text-lg">
-        <h2 className="text-2xl font-bold mb-2">Enter Password</h2>
-        <input
-          type="password"
-          value={inputPassword}
-          onChange={(e) => setInputPassword(e.target.value)}
-          className="border p-2 mr-2 text-base"
-        />
-        <button onClick={handlePasswordSubmit} className="bg-blue-500 text-white px-4 py-2 rounded text-base">Submit</button>
+      <div className="flex items-center justify-center h-screen text-2xl">
+        <div>
+          <h2 className="text-3xl font-bold mb-4 text-center">Enter Password</h2>
+          <div className="flex justify-center items-center gap-4">
+            <input
+              type="password"
+              value={inputPassword}
+              onChange={(e) => setInputPassword(e.target.value)}
+              className="border p-3 text-xl"
+            />
+            <button onClick={handlePasswordSubmit} className="bg-blue-500 text-white px-6 py-3 rounded text-xl">Submit</button>
+          </div>
+        </div>
       </div>
     );
   }
 
   if (step >= questions.length) {
     return (
-      <div className="p-4 text-xl">
-        <h2 className="text-3xl font-bold">Quiz Complete!</h2>
-        <p className="mt-4">You scored {score} out of {questions.length}.</p>
-        <p className="mt-2">Percentage: {percentage}%</p>
+      <div className="flex items-center justify-center h-screen text-3xl text-center">
+        <div>
+          <h2 className="text-4xl font-bold">Quiz Complete!</h2>
+          <p className="mt-4">You scored {score} out of {questions.length}.</p>
+          <p className="mt-2">Percentage: {percentage}%</p>
+        </div>
       </div>
     );
   }
@@ -2113,37 +2147,43 @@ function App() {
   const userAnswer = answers[step];
 
   return (
-    <div className="p-6 text-xl">
-      <h2 className="text-2xl font-bold mb-6">Question {step + 1} of {questions.length}</h2>
-      <p className="mb-6 font-bold">{q.question}</p>
-      <div className="space-y-6">
-        {q.options.map((opt) => {
-          const isCorrect = opt === q.answer;
-          const isSelected = opt === userAnswer;
-          let mark = '';
-          if (userAnswer) {
-            if (isSelected && isCorrect) mark = '✅';
-            else if (isSelected && !isCorrect) mark = '❌';
-            else if (isCorrect) mark = '✅';
-          }
-          return (
-            <div
-              key={opt}
-              className={`border p-4 rounded cursor-pointer ${isSelected ? 'bg-gray-100' : ''}`}
-              onClick={() => handleAnswer(opt)}
-            >
-              {mark} {opt}
-            </div>
-          );
-        })}
-      </div>
-      <div className="mt-8 space-x-4">
-        {step > 0 && (
-          <button onClick={prev} className="bg-gray-300 px-4 py-2 rounded text-lg">Back</button>
-        )}
-        {userAnswer && (
-          <button onClick={next} className="bg-blue-500 text-white px-4 py-2 rounded text-lg">Next</button>
-        )}
+    <div className="flex items-center justify-center min-h-screen bg-white text-2xl p-4">
+      <div className="w-full max-w-4xl">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-3xl font-bold">Question {step + 1} of {questions.length}</h2>
+          <div className="text-red-600 font-bold">Time Left: {formatTime(timeLeft)}</div>
+        </div>
+        <p className="mb-8 font-bold text-3xl text-center">{q.question}</p>
+        <div className="space-y-6">
+          {q.options.map((opt, index) => {
+            const isCorrect = opt === q.answer;
+            const isSelected = opt === userAnswer;
+            let mark = '';
+            if (userAnswer) {
+              if (isSelected && isCorrect) mark = '✅';
+              else if (isSelected && !isCorrect) mark = '❌';
+              else if (isCorrect) mark = '✅';
+            }
+            const letter = String.fromCharCode(65 + index); // A, B, C, D...
+            return (
+              <div
+                key={opt}
+                className={`border p-6 rounded cursor-pointer ${isSelected ? 'bg-gray-100' : ''}`}
+                onClick={() => handleAnswer(opt)}
+              >
+                {mark} <strong>{letter}.</strong> {opt.slice(3)}
+              </div>
+            );
+          })}
+        </div>
+        <div className="mt-10 space-x-6 text-center">
+          {step > 0 && (
+            <button onClick={prev} className="bg-gray-300 px-6 py-3 rounded text-2xl">Back</button>
+          )}
+          {userAnswer && (
+            <button onClick={next} className="bg-blue-500 text-white px-6 py-3 rounded text-2xl">Next</button>
+          )}
+        </div>
       </div>
     </div>
   );
