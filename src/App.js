@@ -1817,9 +1817,7 @@ const originalQuestions = [
     question: "Under the Affordable Care Act, insurer may refuse to accept an internal appeal on a denied claim if",
     options: ["the claim is under $500.", "the insured is unable to pay an appeal fee.", "the appeal is filed more than 180 days after the claim denial", "the insured has submitted three appeals within the calendar year."],
     answer: "the appeal is filed more than 180 days after the claim denial"
-  }
-];
-[
+  },
   {
     "question": "All of the following are typical health insuring corporation (HIC) preventive care services provided by a primary care physician EXCEPT",
     "options": ["Diagnostic imaging", "Well-baby checkups", "Physical examinations", "Immunizations for children"],
