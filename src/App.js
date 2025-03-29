@@ -2058,7 +2058,7 @@ const originalQuestions = [
 ];
 
 function App() {
-  console.log("🚀 Clean deploy triggered");
+  console.log("🎯 Fresh push to trigger new deployment");
   const [questions, setQuestions] = useState([]);
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState([]);
